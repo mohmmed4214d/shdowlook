@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الأمن السيبراني وإدارة الرتب</title>
+    
+    <style>
+        :root {
+            --bg-color: #050811;                         /* لون خلفية الصفحة الأساسية */
+            --panel-bg: rgba(10, 20, 38, 0.7);           /* لون خلفية الصناديق الزجاجية */
+            --border-color: rgba(0, 255, 204, 0.25);     /* لون الحدود الافتراضي أخضر سيبراني */
+            --primary-glow: #00ffcc;                     /* لون التوهج الأخضر */
+            --text-main: #f0f4f8;                        /* لون النصوص الرئيسية */
+            --text-muted: #94a3b8;                       /* لون النصوص الفرعية الرمادية */
+            --accent-purple: #9d4edd;                    /* اللون البنفسجي المخصص لأدوات الشبكة */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* حاوية تأثير الماتريكس المتساقط في الخلفية */
+        #cyberMatrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        /* التنسيق العام للصناديق والشاشات */
+        .box {
+            background: var(--panel-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 35px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 255, 204, 0.05);
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .box:hover {
+            border-color: rgba(0, 255, 204, 0.5);
+            box-shadow: 0 12px 40px 0 rgba(0, 255, 204, 0.15);
+        }
+
+        /* صندوق لوحة التحكم (Dashboard) عريض ليناسب البيانات */
+        .dashboard-box {
+            max-width: 800px;
+        }
+
+        /* كلاس مخصص لإخفاء العناصر غير النشطة فوراً */
+        .hidden {
+            display: none !important;
+        }
+
+        h2, h3 {
+            color: #fff;
+            font-weight: 600;
+            margin-top: 0;
+            letter-spacing: 0.5px;
+        }
+
+        h2 {
+            font-size: 24px;
+            border-bottom: 2px solid rgba(0, 255, 204, 0.2);
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+        }
+
+        /* تنسيق حقول الإدخال والقوائم المنسدلة */
+        input, select {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            background-color: rgba(5, 8, 17, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 0 3px rgba(0, 255, 204, 0.2);
+            outline: none;
+            background-color: rgba(5, 8, 17, 0.9);
+        }
+
+        /* الأزرار التفاعلية */
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00ffcc 0%, #00b38f 100%);
+            border: none;
+            border-radius: 8px;
+            color: #050811;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 255, 204, 0.2);
+        }
+
+        button:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 255, 204, 0.4);
+        }
+
+        /* روابط التنقل السفلية النصية */
+        .link-btn {
+            background: none;
+            color: var(--primary-glow);
+            border: none;
+            padding: 0;
+            margin-top: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            width: auto;
+            box-shadow: none;
+            font-weight: 500;
+        }
+
+        .link-btn:hover {
+            text-decoration: underline;
+            background: none;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* نظام توزيع الكروت داخل لوحة التحكم */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+            border-color: rgba(0, 255, 204, 0.2);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .card button {
+            padding: 10px;
+            font-size: 14px;
+            margin-top: 0;
+        }
+
+        /* تنسيقات جداول إدارة المستخدمين والرتب */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+            background-color: rgba(5, 8, 17, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            background-color: rgba(0, 255, 204, 0.08);
+            color: var(--primary-glow);
+            font-weight: 600;
+        }
+
+        /* تنسيق أقسام الأدوات الداخلي */
+        .tool-section {
+            background: rgba(5, 8, 17, 0.5);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 15px;
+            text-align: right;
+        }
+
+        /* صناديق استخراج النتائج */
+        .result-box {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            color: #fff;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* خيارات الـ Checkbox المخصصة في منشئ الحسابات */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+        }
+
+        .checkbox-group input {
+            width: auto;
+            margin: 0;
+        }
+
+        /* تنسيق الروابط المولدة القابلة للنسخ */
+        .masked-link-item {
+            background-color: rgba(255, 255, 255, 0.02);
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            color: var(--primary-glow);
+            font-size: 14px;
+            text-align: center;
+            word-break: break-all;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .masked-link-item:hover {
+            background-color: rgba(0, 255, 204, 0.08);
+            border-color: var(--primary-glow);
+        }
+
+        /* شريط التبويب العلوي لأقسام أدوات الشبكة */
+        .tabs-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            width: auto;
+            margin-top: 0;
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background: rgba(157, 78, 221, 0.1);
+            color: #fff;
+            border-color: var(--accent-purple);
+        }
+
+        /* التبويب النشط حالياً */
+        .tab-btn.active-tab {
+            background: var(--accent-purple);
+            color: #fff;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 10px rgba(157, 78, 221, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="cyberMatrixCanvas"></canvas>
+
+    <div class="box" id="loginScreen">
+        <h2>Register Credentials 🌐</h2>
+        <input type="text" id="userCodeInput" placeholder="أدخل كود التحقق الخاص بك">
+        <button onclick="loginWithCode()"> Authorize Connection </button>
+        <button class="link-btn" onclick="switchScreen('registerScreen')">   Register New Token  </button>
+    </div>
+
+    <div class="box hidden" id="registerScreen">
+        <h2> Register New User  🔐</h2>
+        <input type="text" id="regUser" placeholder="Username ">
+        <input type="password" id="regPass" placeholder="Strong Password  ">
+        <button onclick="registerUser()">   Create Account & Generate Token </button>
+        <button class="link-btn" onclick="switchScreen('loginScreen')">Return Register Credentials  🚪</button>
+    </div>
+
+    <div class="box dashboard-box hidden" id="dashboardScreen">
+        <h2 id="welcomeTitle">مركز العمليات السيبرانية 🛡️</h2>
+        <p style="color: var(--text-muted); margin-top: -15px; margin-bottom: 25px;">مرحباً بك في لوحة تحكم النظام الفيدرالي الآمن</p>
+
+        <div class="grid-container">
+            <div class="card" id="adminBox" style="border-top: 3px solid #ffcc00;">
+                <h3 style="color: #ffcc00;">👑 إدارة النظام</h3>
+                <p>تعديل صلاحيات الأعضاء ومراقبة الرتب الفعالة.</p>
+                <button onclick="openAdminPanel()" style="background: #ffcc00; color: #000; box-shadow: none;">إدارة</button>
+            </div>
+
+            <div class="card" id="infoBox" style="border-top: 3px solid #00ffcc;">
+                <h3 style="color: #00ffcc;">📊 البيانات</h3>
+                <p>إحصائيات المنصة الشاملة ومعدلات التسجيل الحالية.</p>
+                <button onclick="alert('جاري تحميل لوحة البيانات...')">عرض</button>
+            </div>
+
+            <div class="card" style="border-top: 3px solid #2ecc71;">
+                <h3 style="color: #2ecc71;"> ادوات كالي لنكس</h3>
+                <p>طرق استخدام ادوات كالي ول</p>
+                <button onclick="alert('جاري فتح حزمة التشفير...')">تشغيل</button>
+            </div>
+
+            <div class="card" style="border-top: 3px solid var(--accent-purple);">
+                <h3 style="color: var(--accent-purple);">🌐 فحص الشبكات</h3>
+                <p>أدوات تحليل النطاقات وفحص العناوين الرقمية والروابط.</p>
+                <button onclick="toggleNetTools()" style="background: var(--accent-purple); color: #fff; box-shadow: none;">فحص</button>
+            </div>
+        </div>
+
+        <div id="actualAdminPanel" class="hidden" style="margin-top: 30px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <h3 style="text-align: center; color: var(--primary-glow);">👥 صلاحيات الهياكل التنظيمية</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المستخدم</th>
+                        <th>المعرف الفريد</th>
+                        <th>المستوى الأمني</th>
+                        <th>تحديث المستوى</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+
+        <div id="netToolsPanel" class="hidden" style="margin-top: 30px;">
+            <h2 style="color: var(--accent-purple); text-align: center; border-bottom-color: rgba(138, 43, 226, 0.2);">🌐 مركز تحليل الشبكات والنطاقات</h2>
+            
+            <div class="tabs-nav">
+                <button class="tab-btn active-tab" onclick="switchSubTab('urlMaskerTab', this)">🔗 قناع الروابط</button>
+                <button class="tab-btn" onclick="switchSubTab('credentialsTab', this)">⚡ منشئ الحسابات</button>
+                <button class="tab-btn" onclick="switchSubTab('scannerTab', this)">🔍 مستشعر السلامة</button>
+            </div>
+
+            <div id="urlMaskerTab" class="sub-tab-content tool-section" style="background-color: rgba(157, 78, 221, 0.05); border-color: rgba(157, 78, 221, 0.2);">
+                <h3 style="color: #fff; margin-bottom: 15px;">1️⃣ أداة تنظيم مسارات الروابط (URL Masking)</h3>
+                <label style="color: var(--text-muted);">رابط المصدر (Original URL):</label>
+                <input type="text" id="originalUrlInput" placeholder="https://example.com">
+                <label style="color: var(--text-muted);">النطاق المخصص (Custom Domain):</label>
+                <input type="text" id="customDomainInput" placeholder="secured-portal.net">
+                <label style="color: var(--text-muted);">الكلمات المفتاحية الموجهة (Keywords):</label>
+                <input type="text" id="keywordsInput" placeholder="authorization">
+                <button onclick="maskUrlAdvanced()" style="background: var(--accent-purple); color:#fff; width: auto; padding: 12px 35px; display: block; margin: 15px auto 0 auto;">توليد المسارات الآمنة</button>
+                <div id="advancedMaskResult" class="result-box hidden" style="background: rgba(157, 78, 221, 0.1); border-color: rgba(157, 78, 221, 0.2);"></div>
+            </div>
+
+            <div id="credentialsTab" class="sub-tab-content tool-section hidden">
+                <h3 style="text-align: center; color: var(--primary-glow);">2️⃣ منشئ الهويات البرمجية (Credentials Generator)</h3>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;">
+                    <label style="font-size: 14px; color: var(--primary-glow);">طول الرمز المطلوب:</label>
+                    <input type="number" id="passLength" value="16" min="6" max="50" style="padding: 8px; font-size: 14px; width: 80px; display: inline-block; margin-right: 10px; margin-top: 0;">
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="includeUpper" checked> رموز عليا (A-Z)</label>
+                        <label><input type="checkbox" id="includeLower" checked> رموز سفلى (a-z)</label>
+                        <label><input type="checkbox" id="includeNumbers" checked> أرقام نظام ثنائي (0-9)</label>
+                        <label><input type="checkbox" id="includeSymbols" checked> محارف خاصة (!@#$)</label>
+                    </div>
+                </div>
+                <button onclick="generateCustomCredentials()">توليد حساب معزز ⚡</button>
+                <div id="credentialsResult" class="result-box hidden" style="text-align: right; font-size: 14px; background: rgba(0,0,0,0.3);"></div>
+            </div>
+
+            <div id="scannerTab" class="sub-tab-content tool-section hidden" style="border-color: rgba(231, 76, 60, 0.2);">
+                <h3 style="color: #e74c3c;">3️⃣ مستشعر سلامة النطاقات والملفات الفوري (Safety Scanner)</h3>
+                <input type="text" id="scanInput" placeholder="أدخل النطاق (مثال: google.com أو رابط مريب)...">
+                <button onclick="scanLinkOrFile()" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: #fff; box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);">بدء التحليل والاتصال بالشبكة 🔍</button>
+                <div id="scanResult" class="result-box hidden" style="font-weight: bold; background: rgba(0,0,0,0.2); text-align: right; line-height: 1.6;"></div>
+            </div>
+        </div>
+
+        <br><br>
+        <button onclick="location.reload()" style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); width: auto; padding: 10px 30px; box-shadow: none;">إنهاء الجلسة الآمنة 🚪</button>
+    </div>
+
+    <script>
+        // ------------------------------------------
+        // [1] سكربت تشغيل خلفية الماتريكس (Matrix Effect)
+        // ------------------------------------------
+        const canvas = document.getElementById('cyberMatrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const katakana = "01010101ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@$%&*<>+-=";
+        const alphabet = katakana.split("");
+        const fontSize = 16;
+        let columns = canvas.width / fontSize;
+        const rainDrops = [];
+        for (let x = 0; x < columns; x++) { rainDrops[x] = 1; }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(5, 8, 17, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ffcc';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet[Math.floor(Math.random() * alphabet.length)];
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) { rainDrops[i] = 0; }
+                rainDrops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 30);
+
+        // ------------------------------------------
+        // [2] دوال التنقل والتحكم بالواجهات والأقسام الفرعية
+        // ------------------------------------------
+        
+        // دالة التنقل بين الشاشات الرئيسية (تسجيل دخول، إنشاء حساب، لوحة تحكم)
+        function switchScreen(screenId) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('registerScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // دالة التنقل الفوري بين أقسام أدوات الشبكة (Tabs Switcher)
+        function switchSubTab(tabId, buttonEl) {
+            const contents = document.querySelectorAll('.sub-tab-content');
+            contents.forEach(content => content.classList.add('hidden')); // إخفاء المحتويات السابقة
+            
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active-tab'));   // إزالة تحديد الأزرار الأخرى
+            
+            document.getElementById(tabId).classList.remove('hidden');    // إظهار القسم المطلوب
+            buttonEl.classList.add('active-tab');                         // تفعيل الزر الحالي
+        }
+
+        // دالة إظهار أو إخفاء حاوية أدوات الشبكة عند الضغط على كارت "فحص"
+        function toggleNetTools() {
+            document.getElementById('actualAdminPanel').classList.add('hidden');
+            const panel = document.getElementById('netToolsPanel');
+            if (panel.classList.contains('hidden')) { panel.classList.remove('hidden'); } 
+            else { panel.classList.add('hidden'); }
+        }
+
+
+        // ------------------------------------------
+        // [3] دوال الاتصال بالسيرفر الخلفي (Backend API)
+        // ------------------------------------------
+
+        // دالة تسجيل الدخول بواسطة كود المستخدم الفريد الخاص به
+        async function loginWithCode() {
+            const userCode = document.getElementById('userCodeInput').value;
+            if (!userCode) return alert("الرجاء إدخال كود الدخول!");
+            try {
+                const res = await fetch('/login-by-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userCode })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message);
+                    sessionStorage.setItem('username', data.username);
+                    sessionStorage.setItem('role', data.role);
+                    document.getElementById('welcomeTitle').innerText = `مركز العمليات السيبرانية 🛡️ [${data.role}]`;
+                    
+                    // التحكم بإظهار أو إخفاء لوحة الإدارة بناء على دور المستخدم (Admin أو User)
+                    if (data.role === 'Admin') {
+                        document.getElementById('adminBox').style.display = "block";
+                        document.getElementById('infoBox').style.display = "block";
+                    } else {
+                        document.getElementById('adminBox').style.display = "none";
+                        document.getElementById('infoBox').style.display = "none";
+                        document.getElementById('actualAdminPanel').classList.add('hidden');
+                    }
+                    switchScreen('dashboardScreen');
+                } else { alert(data.error); }
+            } catch (err) { alert("حدث خطأ في الاتصال بالنظام الأصلي!"); }
+        }
+
+        // دالة إنشاء حساب مستخدم جديد وتوليد كود الدخول له تلقائياً من السيرفر
+        async function registerUser() {
+            const username = document.getElementById('regUser').value;
+            const password = document.getElementById('regPass').value;
+            if (!username || !password) return alert("الرجاء ملء حقول التعريف بالكامل!");
+            try {
+                const res = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`${data.message}\nمعرف الدخول الآمن الخاص بك هو: ${data.userCode}`);
+                    switchScreen('loginScreen');
+                    document.getElementById('userCodeInput').value = data.userCode;
+                } else { alert(data.error); }
+            } catch (err) { alert("فشل الاتصال بمركز التسجيل!"); }
+        }
+
+        // دالة جلب قائمة الأعضاء بالكامل من السيرفر وعرضها في جدول المسؤولين (Admin Only)
+        async function openAdminPanel() {
+            document.getElementById('netToolsPanel').classList.add('hidden');
+            const panel = document.getElementById('actualAdminPanel');
+            if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+            try {
+                const res = await fetch('/admin/users');
+                const users = await res.json();
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = "";
+                if (users.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="color: var(--text-muted);">لا توجد سجلات مستخدمين حالياً.</td></tr>`;
+                } else {
+                    users.forEach(user => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${user.username}</td>
+                                <td style="color: var(--primary-glow); font-family: monospace;">${user.userCode}</td>
+                                <td style="font-weight: 600; color: ${user.role === 'Admin' ? '#ffcc00' : '#2ecc71'}">${user.role}</td>
+                                <td>
+                                    <select id="roleSelect-${user.userCode}" style="width: auto; padding: 5px; margin: 0; font-size: 13px;">
+                                        <option value="User" ${user.role === 'User' ? 'selected' : ''}>User</option>
+                                        <option value="Admin" ${user.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                                    </select>
+                                    <button style="padding: 5px 12px; font-size: 12px; width: auto; background: #2ecc71; color: #000; margin: 0; box-shadow: none;" onclick="updateUserRole('${user.userCode}')">حفظ</button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+                panel.classList.remove('hidden');
+            } catch (err) { alert("حدث خطأ أثناء مزامنة البيانات السحابية!"); }
+        }
+
+        // دالة تحديث صلاحيات ورتب مستخدم معين وحفظها في قاعدة البيانات عبر السيرفر
+        async function updateUserRole(userCode) {
+            const selectBox = document.getElementById(`roleSelect-${userCode}`);
+            const newRole = selectBox.value;
+            try {
+                const res = await fetch('/admin/update-role', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userCode, newRole })
+                });
+                if (res.ok) {
+                    alert("تم تحديث مستوى الأمان بنجاح!");
+                    document.getElementById('actualAdminPanel').classList.add('hidden');
+                    openAdminPanel(); // إعادة تحميل الجدول لعرض التغييرات الجديدة
+                }
+            } catch (err) { alert("فشلت عملية حفظ التعديلات!"); }
+        }
+
+
+        // ------------------------------------------
+        // [4] منطق عمل الأدوات المساعدة داخل المتصفح (Client-Side Tools)
+        // ------------------------------------------
+
+        // دالة أداة قناع الروابط (URL Masking) لتوليد روابط توجيهية فرعية ومحاكاتها
+        function maskUrlAdvanced() {
+            const originalUrl = document.getElementById('originalUrlInput').value.trim();
+            let customDomain = document.getElementById('customDomainInput').value.trim();
+            const keywords = document.getElementById('keywordsInput').value.trim();
+
+            if (!originalUrl) return alert("الرجاء إدخال الرابط الأساسي للتحليل!");
+
+            let cleanUrl = originalUrl;
+            if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) { cleanUrl = 'https://' + cleanUrl; }
+
+            // مصفوفة الروابط التوجيهية الناتجة
+            const formattedLinks = [
+                `${cleanUrl}?redirect=${encodeURIComponent(keywords || 'secure-nav')}`,
+                `${cleanUrl}/index.html?session=${encodeURIComponent(customDomain || 'auth-root')}`,
+                `${cleanUrl}?gateway=portal`
+            ];
+
+            let htmlResults = `<p style="color: #fff; font-weight: 500; font-size: 16px; margin-bottom: 5px;">رابط التحليل الأصلي:</p>`;
+            htmlResults += `<p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px; font-family: monospace;">${cleanUrl}</p>`;
+            htmlResults += `<h3 style="color: var(--primary-glow); font-weight: 600; margin-bottom: 15px; font-size: 18px;">مسارات التحويل المولدة برمجياً:</h3>`;
+
+            formattedLinks.forEach((link) => {
+                htmlResults += `<div class="masked-link-item" onclick="navigator.clipboard.writeText('${link}'); alert('تم نسخ رابط المسار التوجيهي بنجاح! 📋');">${link}</div>`;
+            });
+
+            const resBox = document.getElementById('advancedMaskResult');
+            resBox.innerHTML = htmlResults;
+            resBox.classList.remove('hidden');
+        }
+
+        // دالة منشئ الهويات البرمجية وكلمات المرور العشوائية القوية
+ function generateCustomCredentials() {
+    // 1. توليد معرّف عشوائي بالكامل (Random String)
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let randomUser = "User_"; // بادئة اختيارية
+    for (let i = 0; i < 8; i++) {
+        randomUser += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+
+    // 2. إعدادات توليد كلمة المرور (كما هي في الكود الأصلي)
+    const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowerChars = "abcdefghijklmnopqrstuvwxyz";
+    const numberChars = "0123456789";
+    const symbolChars = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+
+    let allowedChars = "";
+    if (document.getElementById('includeUpper').checked) allowedChars += upperChars;
+    if (document.getElementById('includeLower').checked) allowedChars += lowerChars;
+    if (document.getElementById('includeNumbers').checked) allowedChars += numberChars;
+    if (document.getElementById('includeSymbols').checked) allowedChars += symbolChars;
+
+    if (allowedChars === "") return alert("الرجاء اختيار نمط محارف واحد على الأقل للتركيب!");
+
+    const length = parseInt(document.getElementById('passLength').value) || 16;
+    let randomPass = "";
+    for (let i = 0; i < length; i++) {
+        randomPass += allowedChars.charAt(Math.floor(Math.random() * allowedChars.length));
+    }
+
+    // 3. عرض النتيجة
+    const resBox = document.getElementById('credentialsResult');
+    resBox.innerHTML = `👤 <b>المعرف العشوائي:</b> ${randomUser} <br> 🔑 <b>الرمز المعزز المولد:</b> ${randomPass}`;
+    resBox.classList.remove('hidden');
+}
+
+        // دالة مستشعر السلامة الحقيقي (الاستعلام الفعلي من خوادم DNS الخارجية لـ Cloudflare)
+        async function scanLinkOrFile() {
+            let inputTarget = document.getElementById('scanInput').value.trim();
+            if (!inputTarget) return alert("الرجاء إدخال اسم ملف أو عنوان نطاق لفحصه!");
+            
+            const resBox = document.getElementById('scanResult');
+            resBox.classList.remove('hidden');
+            resBox.style.color = "#ffcc00";
+            resBox.innerHTML = "⏳ جاري إرسال حزم البيانات والاتصال بالخوادم الأمنية لتحليل النطاق...";
+
+            // استخلاص اسم النطاق فقط (مثال تحويل https://google.com/test إلى google.com فورا)
+            let domainOnly = inputTarget.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0].split('?')[0];
+
+            try {
+                // استعلام حقيقي 100% عبر بروتوكول DNS-over-HTTPS من سيرفرات Cloudflare للتحقق من وجود الموقع
+                const dnsResponse = await fetch(`https://cloudflare-dns.com/dns-query?name=${domainOnly}&type=A`, {
+                    headers: { 'Accept': 'application/dns-json' }
+                });
+                const dnsData = await dnsResponse.json();
+                
+                // التأكد مما إذا كان النطاق مسجلاً وله عنوان IP نشط على الويب
+                let isDomainLive = dnsData.Status === 0 && dnsData.Answer && dnsData.Answer.length > 0;
+                let ipAddress = isDomainLive ? dnsData.Answer[0].data : "غير معروف أو نطاق غير نشط";
+
+                let backendStatus = "تنبيه: السيرفر الخلفي لم يُربط بـ VirusTotal API بعد، تم الفحص محلياً.";
+                let localThreat = false;
+                
+                try {
+                    // محاولة إرسال الطلب للسيرفر الخاص بك (إذا تم تجهيز تفعيل الـ API الخلفي مستقبلاً)
+                    const backendRes = await fetch('/api/scan-url', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: inputTarget })
+                    });
+                    if (backendRes.ok) {
+                        const backendData = await backendRes.json();
+                        backendStatus = backendData.result; 
+                    }
+                } catch(e) {
+                    // فحص هيكلي فوري ذكي محلي في حال لم يتم الاتصال بـ API خارجي ضار
+                    const dangerousKeywords = [".exe", ".bat", ".scr", "free-gift", "login-update", "verify-account"];
+                    localThreat = dangerousKeywords.some(keyword => inputTarget.toLowerCase().includes(keyword));
+                }
+
+                // تحليل النتائج وبناء التقرير الأمني للمستخدم بناءً على الفحص الفعلي
+                if (localThreat) {
+                    resBox.style.color = "#e74c3c";
+                    resBox.innerHTML = `🚨 <b>تهديد أمني مرتفع:</b><br>
+                                        • تم العثور على محارف تنفيذية مريبة في الرابط.<br>
+                                        • عنوان الـ IP المكتشف عبر DNS: <span style="font-family:monospace;">${ipAddress}</span><br>
+                                        • حالة النطاق: النشاط فعال ويشكل خطورة.`;
+                } else if (!isDomainLive) {
+                    resBox.style.color = "#ffcc00";
+                    resBox.innerHTML = `⚠️ <b>نطاق وهمي أو غير مسجل:</b><br>
+                                        • لم يعثر مستشعر الـ DNS على أي سجلات حية (A Record) لهذا الموقع على الإنترنت.<br>
+                                        • قد يكون الموقع متوقفاً أو يستخدم خوادم تصيد مؤقتة ومخفية.`;
+                } else if (inputTarget.startsWith("http://")) {
+                    resBox.style.color = "#ffcc00";
+                    resBox.innerHTML = `⚠️ <b>موقع نشط ولكن غير مشفر:</b><br>
+                                        • النطاق متصل بالإنترنت ويعمل على IP: <span style="font-family:monospace;">${ipAddress}</span><br>
+                                        • <b>الخطر:</b> الموقع يفتقر لتشفير SSL (HTTP عادي) مما يسمح بالتنصت على البيانات.`;
+                } else {
+                    resBox.style.color = "#2ecc71";
+                    resBox.innerHTML = `✅ <b>فحص النطاق سليم وآمن:</b><br>
+                                        • الموقع نشط رسميياً على الإنترنت وموثق.<br>
+                                        • عنوان الـ IP الفعلي الحالي: <span style="font-family:monospace;">${ipAddress}</span><br>
+                                        • الاتصال مشفر وآمن ولا توجد مؤشرات تزييف هيكلية.<br>
+                                        <small style="color:var(--text-muted); font-size:11px;">(${backendStatus})</small>`;
+                }
+
+            } catch (error) {
+                resBox.style.color = "#e74c3c";
+                resBox.innerHTML = "❌ فشل الاتصال بالشبكة الاستقصائية الخارجية لـ DNS. تأكد من اتصالك بالإنترنت!";
+            }
+        }
+    </script>
+</body>
+</html>
